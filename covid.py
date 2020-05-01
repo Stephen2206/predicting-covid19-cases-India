@@ -212,7 +212,7 @@ cards_metrics = html.Div([dbc.Row([
     dbc.Col(dbc.Card([html.H5("Deceased :"),
                       html.H5(str(deceased))], color="warning", inverse=True)
             ),
-], className="mb-3",),
+], className="mb-3" "sm-2",),
 ])
 
 # bar graph holder
@@ -223,9 +223,9 @@ last_week = dbc.Row([dbc.Col(dbc.Card(
 
 covid = dash.Dash(__name__, external_scripts=external_scripts, external_stylesheets=external_stylesheets)
 server = covid.server
+covid.title = "COVID-19 PREDICTIONS India"
 
-covid.layout = html.Div([
-    html.Title("COVID-19 Predictions"),
+covid.layout = dbc.Container([
     dcc.Tabs(id="tabs", children=[
         # Left Tab
         dcc.Tab(label='Dashboard', children=[
