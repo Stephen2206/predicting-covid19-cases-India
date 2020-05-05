@@ -269,10 +269,6 @@ covid.layout = html.Div([
                                ),
                                ],),
                            ),
-                           dbc.Container([
-                               # last_week,
-                               html.Br(),
-                           ]),
                            ]),
             footer
         ]),
