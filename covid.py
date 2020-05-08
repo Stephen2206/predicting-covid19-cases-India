@@ -21,7 +21,7 @@ from pmdarima import auto_arima
 external_scripts = ['/assets/style.css']
 external_stylesheets = [dbc.themes.BOOTSTRAP]
 
-# Fetching Data Till Yesterday
+# Fetching Data
 
 url = "https://api.covid19india.org/data.json"
 payload = {}
@@ -46,6 +46,7 @@ dates = []
 confirmed = []
 future = []
 
+# data frame columns
 for i in range(0, len(daily_cases)):
     dates.append(daily_cases[i]['date'])
     confirmed.append(daily_cases[i]['totalconfirmed'])
@@ -64,39 +65,11 @@ df['Cases'] = df['Cases'].astype('float32')
 zipped = list(zip(dates, confirmed))
 df = pd.DataFrame(zipped, columns=['Date', 'Cases'])
 
-'''
-
-
-length_df = len(df)
-length_train = (length_df-7)
-length_test = 7
-train_data = df.iloc[:length_train,:]
-test_data = df.iloc[length_train:,:]
-
-stepwise_model = auto_arima(train_data['Cases'], start_p=1, start_q=1,
-                           max_p=5, max_q=5,seasonal=True,
-                           error_action='ignore',
-                           suppress_warnings=True,
-                           stepwise=True)
-model = stepwise_model.fit(train_data['Cases'])
-
-test_forecast = stepwise_model.predict(n_periods=length_test)
-test_forecast = np.ceil(test_forecast)
-
-dates = test_data['Date']
-
-fig_model = go.Figure(data=[
-    go.Bar(name='Predicted', x=dates, y=test_forecast),
-    go.Bar(name='Observed', x=dates, y=test_data['Cases'])
-])
-fig_model.update_layout(barmode='group')
-'''
-
-'''Dates for next 7 days'''
+# Dates for next 7 days
 for i in range(0, 8):
     future.append(str(date.today() + timedelta(days=i)))
 
-'''ARIMA Model'''
+# ARIMA Model
 
 stepwise_model = auto_arima(df['Cases'], start_p=1, start_q=1,
                             max_p=5, max_q=5, seasonal=True,
@@ -138,7 +111,8 @@ colors_recovered = ['green', ] * colors_length
 colors_deceased = ['grey', ] * colors_length
 
 fig_forecast = go.Figure(data=[
-    go.Bar(name='Confirmed', x=daily_dates, y=future_forecast,
+    go.Bar(name='Confirmed', x=future, y=future_forecast,
+           text=future_forecast, textposition='auto',
            marker_color=colors_confirmed)
 ])
 
@@ -210,67 +184,68 @@ table = dbc.Table.from_dataframe(df_future, striped=True, bordered=True, hover=T
 
 today_confirmed = state_wise[0]["confirmed"]
 
-# Cards depicting Cases Status
-
-
+delta_confirmed = str(state_wise[0]["deltaconfirmed"])
+delta_recovered = str(state_wise[0]["deltarecovered"])
+delta_deceased = str(state_wise[0]["deltadeaths"])
 # bar graph holder
-'''
-last_week = dbc.Row([dbc.Col(dbc.Card(
-    [dbc.CardHeader(html.H5("Last Week Results"),style={"text-align":"center"}),
-     dcc.Graph(figure=fig_model)])),
-])
-'''
+
 cards_metrics = html.Div([dbc.Row([
-    dbc.Col(dbc.Card([html.H5("Cases Expected Today "),
-                      html.H5(str(future_forecast[0])+
+    dbc.Col(dbc.Card([html.H6("Cases Expected Today "),
+                      html.H6(str(int(future_forecast[0])) +
                               str('[+' + str(expected) + ']')),
                       ],
                      color="primary", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
-    dbc.Col(dbc.Card([html.H5("Confirmed Cases "),
-                      html.H5(str(int(today_confirmed))+
-                              "[+" + str(state_wise[0]["deltaconfirmed"]) + "]"),
+    dbc.Col(dbc.Card([html.H6("Confirmed Cases "),
+                      html.H6(str(int(today_confirmed)) +
+                              "[+" + delta_confirmed + "]"),
                       ],
                      color="danger", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
-    dbc.Col(dbc.Card([html.H5("Recovered "),
-                      html.H5(str(int(state_wise[0]["recovered"]))+
-                              "[+" + str(state_wise[0]["deltarecovered"]) + "]"),
+    dbc.Col(dbc.Card([html.H6("Recovered "),
+                      html.H6(str(int(state_wise[0]["recovered"])) +
+                              "[+" + delta_recovered + "]"),
                       ],
                      color="success", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
-    dbc.Col(dbc.Card([html.H5("Deceased "),
-                      html.H5(str(int(state_wise[0]["deaths"])) +
-                              "[+" + str(state_wise[0]["deltadeaths"]) + "]"),
+    dbc.Col(dbc.Card([html.H6("Deceased "),
+                      html.H6(str(int(state_wise[0]["deaths"])) +
+                              "[+" + delta_deceased + "]"),
                       ],
                      color="warning", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
 ]),
 ])
 
-covid = dash.Dash(__name__, external_scripts=external_scripts, external_stylesheets=external_stylesheets)
+# District Tables
+
+covid = dash.Dash(__name__, external_scripts=external_scripts, external_stylesheets=external_stylesheets,
+                  meta_tags=[
+                      {"name": "viewport", "content": "width=device-width, initial-scale=1"}
+                  ]
+                  )
 server = covid.server
 covid.title = "COVID-19 PREDICTIONS India"
 
+# layout
 covid.layout = html.Div([
     dcc.Tabs(id="tabs", children=[
         # Left Tab
         dcc.Tab(label='Dashboard', children=[
-            dbc.Container([header,
-                           cards_metrics,
-                           html.Br(),
-                           alerts,
-                           html.Div(
+            html.Div([
+                html.Div([header,
+                               cards_metrics,
+                               html.Br(),
+                               alerts,
+
                                dbc.Row([dbc.Col(
                                    [
                                        dbc.CardHeader(html.H5("Predictions for Next Week")),
                                        dbc.Card(table),
-                                   ], sm=8, md=8, lg=8,
-                               ),
+                                   ], xs=12, sm=12, md=12, lg=12, xl=12),
                                ],),
-                           ),
-                           ]),
-            footer
+                               ]),
+                footer]),
         ]),
         # Right Tab
         dcc.Tab(label='Cases Projections', children=[
