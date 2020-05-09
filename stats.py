@@ -65,9 +65,16 @@ df['Cases'] = df['Cases'].astype('float32')
 zipped = list(zip(dates, confirmed))
 df = pd.DataFrame(zipped, columns=['Date', 'Cases'])
 
+import pytz
+import datetime
+
+ist = pytz.timezone('Asia/Calcutta')
+date = datetime.datetime.now(ist)
+today = date.date()
+
 # Dates for next 7 days
 for i in range(0, 8):
-    future.append(str(date.today() + timedelta(days=i)))
+    future.append(str(today + timedelta(days=i)))
 
 # ARIMA Model
 
