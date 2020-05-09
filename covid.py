@@ -65,9 +65,16 @@ df['Cases'] = df['Cases'].astype('float32')
 zipped = list(zip(dates, confirmed))
 df = pd.DataFrame(zipped, columns=['Date', 'Cases'])
 
+import pytz
+import datetime
+
+ist = pytz.timezone('Asia/Calcutta')
+date = datetime.datetime.now(ist)
+today = date.date()
+
 # Dates for next 7 days
 for i in range(0, 8):
-    future.append(str(date.today() + timedelta(days=i)))
+    future.append(str(today + timedelta(days=i)))
 
 # ARIMA Model
 
@@ -245,20 +252,20 @@ for i in statewise:
     state_recovered_daily.append(i['deltarecovered'])
 
 df_states_daily = pd.DataFrame(list(zip(states, state_confirmed_daily, state_recovered_daily, state_deaths_daily)),
-                               columns=['State', 'Confirmed', 'Recovered', 'Deaths'])
+                               columns=['State', 'Cnfrmd', 'Rcvrd', 'Dths'])
 df_states = pd.DataFrame(list(zip(states, state_confirmed,state_active,state_recovered,state_deaths)),
-                         columns=['State', 'Confirmed', 'Active', 'Recovered', 'Deaths'])
+                         columns=['State', 'Cnfrmd', 'Active', 'Rcvrd', 'Dths'])
 
-table_state = dbc.Table.from_dataframe(df_states, striped=True, bordered=True, hover=True)
+table_state = dbc.Table.from_dataframe(df_states, striped=True, bordered=True, hover=True, responsive=True, size='sm')
 
-table_state_daily = dbc.Table.from_dataframe(df_states_daily, striped=True, bordered=True, hover=True)
+table_state_daily = dbc.Table.from_dataframe(df_states_daily, striped=True, bordered=True, hover=True, responsive=True,size='sm')
 
 
 # embedding into tabs
 tab1_content = dbc.Card(
     dbc.CardBody(
         [
-            html.P("Cases Today", className="card-text"),
+            # html.P("Cases Today", className="card-text"),
             table_state_daily,
         ]
     ),
@@ -268,7 +275,7 @@ tab1_content = dbc.Card(
 tab2_content = dbc.Card(
     dbc.CardBody(
         [
-            html.P("Total Cases", className="card-text"),
+            # html.P("Total Cases", className="card-text"),
             table_state,
         ]
     ),
@@ -312,8 +319,11 @@ covid.layout = html.Div([
                                   ], xs=12, sm=12, md=12, lg=12, xl=12),
                               ], ),
                               html.Br(),
-                              tabs_state,])
+                              tabs_state,
                           ]),
+
+                          ]),
+
                 footer]),
         ]),
         # Right Tab
