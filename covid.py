@@ -36,7 +36,7 @@ json_data = json.loads(response.text)
 # converting data into data frame
 
 daily_cases = json_data['cases_time_series']
-state_wise = json_data['statewise']
+statewise = json_data['statewise']
 
 deceased = daily_cases[-1]["totaldeceased"]
 recovered = daily_cases[-1]["totalrecovered"]
@@ -155,7 +155,10 @@ card_daily = dbc.Container([dbc.Row([
     ])
 ])
 
-header = html.H1("Covid 19 Metrics Distributions", style={"textAlign": "center"})
+header = dbc.Container(
+    html.H1("Covid 19 Metrics Distributions",
+            style={"textAlign": "center"})
+)
 
 footer = html.Div(
     [
@@ -172,7 +175,7 @@ footer = html.Div(
     ]
 )
 
-alerts = html.Div(
+alerts = dbc.Container(
     [
         dbc.Alert("NOTE:This is just a predictive model. Actual Results may vary.", color="danger",
                   style={"textAlign": "center"}),
@@ -182,14 +185,14 @@ alerts = html.Div(
 # Table for 7 days forecast
 table = dbc.Table.from_dataframe(df_future, striped=True, bordered=True, hover=True)
 
-today_confirmed = state_wise[0]["confirmed"]
+today_confirmed = statewise[0]["confirmed"]
 
-delta_confirmed = str(state_wise[0]["deltaconfirmed"])
-delta_recovered = str(state_wise[0]["deltarecovered"])
-delta_deceased = str(state_wise[0]["deltadeaths"])
+delta_confirmed = str(statewise[0]["deltaconfirmed"])
+delta_recovered = str(statewise[0]["deltarecovered"])
+delta_deceased = str(statewise[0]["deltadeaths"])
 # bar graph holder
 
-cards_metrics = html.Div([dbc.Row([
+cards_metrics = dbc.Container([dbc.Row([
     dbc.Col(dbc.Card([html.H6("Cases Expected Today "),
                       html.H6(str(int(future_forecast[0])) +
                               str('[+' + str(expected) + ']')),
@@ -203,13 +206,13 @@ cards_metrics = html.Div([dbc.Row([
                      color="danger", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
     dbc.Col(dbc.Card([html.H6("Recovered "),
-                      html.H6(str(int(state_wise[0]["recovered"])) +
+                      html.H6(str(int(statewise[0]["recovered"])) +
                               "[+" + delta_recovered + "]"),
                       ],
                      color="success", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
             ),
     dbc.Col(dbc.Card([html.H6("Deceased "),
-                      html.H6(str(int(state_wise[0]["deaths"])) +
+                      html.H6(str(int(statewise[0]["deaths"])) +
                               "[+" + delta_deceased + "]"),
                       ],
                      color="warning", inverse=True), xs=6, sm=6, md=6, lg=3, xl=3
@@ -217,7 +220,71 @@ cards_metrics = html.Div([dbc.Row([
 ]),
 ])
 
-# District Tables
+# Ststewise Count
+
+states = []
+state_active = []
+state_confirmed = []
+state_recovered = []
+state_deaths = []
+
+# state_active_daily = []
+state_confirmed_daily = []
+state_recovered_daily = []
+state_deaths_daily = []
+
+for i in statewise:
+    states.append(i['state'])
+    state_active.append(i['active'])
+    state_confirmed.append(i['confirmed'])
+    state_deaths.append(i['deaths'])
+    state_recovered.append(i['recovered'])
+
+    state_confirmed_daily.append(i['deltaconfirmed'])
+    state_deaths_daily.append(i['deltadeaths'])
+    state_recovered_daily.append(i['deltarecovered'])
+
+df_states_daily = pd.DataFrame(list(zip(states, state_confirmed_daily, state_recovered_daily, state_deaths_daily)),
+                               columns=['State', 'Confirmed', 'Recovered', 'Deaths'])
+df_states = pd.DataFrame(list(zip(states, state_confirmed,state_active,state_recovered,state_deaths)),
+                         columns=['State', 'Confirmed', 'Active', 'Recovered', 'Deaths'])
+
+table_state = dbc.Table.from_dataframe(df_states, striped=True, bordered=True, hover=True)
+
+table_state_daily = dbc.Table.from_dataframe(df_states_daily, striped=True, bordered=True, hover=True)
+
+
+# embedding into tabs
+tab1_content = dbc.Card(
+    dbc.CardBody(
+        [
+            html.P("Cases Today", className="card-text"),
+            table_state_daily,
+        ]
+    ),
+    className="mt-3",
+)
+
+tab2_content = dbc.Card(
+    dbc.CardBody(
+        [
+            html.P("Total Cases", className="card-text"),
+            table_state,
+        ]
+    ),
+    className="mt-3",
+)
+
+
+tabs_state = dbc.Tabs(
+    [
+        dbc.Tab(tab1_content, label="Cases Today"),
+        dbc.Tab(tab2_content, label="Total Cases"),
+    ]
+)
+
+
+# app starts
 
 covid = dash.Dash(__name__, external_scripts=external_scripts, external_stylesheets=external_stylesheets,
                   meta_tags=[
@@ -234,17 +301,19 @@ covid.layout = html.Div([
         dcc.Tab(label='Dashboard', children=[
             html.Div([
                 html.Div([header,
-                               cards_metrics,
-                               html.Br(),
-                               alerts,
-
-                               dbc.Row([dbc.Col(
-                                   [
-                                       dbc.CardHeader(html.H5("Predictions for Next Week")),
-                                       dbc.Card(table),
-                                   ], xs=12, sm=12, md=12, lg=12, xl=12),
-                               ],),
-                               ]),
+                          cards_metrics,
+                          html.Br(),
+                          alerts,
+                          dbc.Container([
+                              dbc.Row([dbc.Col(
+                                  [
+                                      dbc.CardHeader(html.H5("Predictions for Next Week")),
+                                      dbc.Card(table),
+                                  ], xs=12, sm=12, md=12, lg=12, xl=12),
+                              ], ),
+                              html.Br(),
+                              tabs_state,])
+                          ]),
                 footer]),
         ]),
         # Right Tab
