@@ -23,26 +23,39 @@ H6{
   text-align: center;
 }
 @media (min-width:300px) {
+  H1{
+    font-size:16px;
+  }
   H6 {
     font-size: 12px;
   }
 }
 
 @media (min-width:600px) {
+    H1{
+    font-size:24px;
+  }
   H6 {
     font-size: 16px;
   }
 }
 
 @media (min-width:800px) {
+  H1{
+    font-size:26px;
+  }
   H6 {
     font-size: 18px;
   }
 }
 
 @media (min-width:1000px) {
+   H1{
+    font-size:30px;
+  }
   H6 {
     /* Never get larger than this */
+
     font-size: 20px;
   }
 }
