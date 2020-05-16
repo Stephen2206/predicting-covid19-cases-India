@@ -91,7 +91,7 @@ future_forecast = np.ceil(future_forecast)
 zipped_forecast = list(zip(future, future_forecast))
 df_future = pd.DataFrame(zipped_forecast, columns=['Date', 'Cases'])
 
-observed_yesterday = daily_cases[-1]['totalconfirmed']
+observed_yesterday = daily_cases[-2]['totalconfirmed']
 expected = int(future_forecast[0]) - int(observed_yesterday)
 
 # Graphs depicting Daily Changes
