@@ -47,7 +47,7 @@ confirmed = []
 future = []
 
 # data frame columns
-for i in range(0, len(daily_cases)):
+for i in range(0, len(daily_cases)-1):
     dates.append(daily_cases[i]['date'])
     confirmed.append(daily_cases[i]['totalconfirmed'])
 
